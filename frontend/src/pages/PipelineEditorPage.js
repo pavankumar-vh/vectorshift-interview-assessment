@@ -12,6 +12,7 @@ import {
 import { PipelineToolbar } from '../toolbar';
 import { PipelineUI } from '../ui';
 import { useStore } from '../store';
+import ShareDialog from '../components/ShareDialog';
 
 export const PipelineEditorPage = () => {
   const { id } = useParams();
@@ -39,6 +40,7 @@ export const PipelineEditorPage = () => {
   const [isValidating, setIsValidating] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const shareUrl = useMemo(() => {
     if (!shareToken) {
@@ -171,7 +173,8 @@ export const PipelineEditorPage = () => {
       return;
     }
 
-    window.prompt('Copy share link:', shareUrl);
+    // fallback to modal copy UI when clipboard not available
+    setShowShareDialog(true);
   };
 
   if (isLoading) {
@@ -179,6 +182,7 @@ export const PipelineEditorPage = () => {
   }
 
   return (
+    <>
     <div className="page">
       <div className="page-header">
         <div>
@@ -318,5 +322,7 @@ export const PipelineEditorPage = () => {
         </aside>
       </div>
     </div>
+    <ShareDialog open={showShareDialog} shareUrl={shareUrl} onClose={() => setShowShareDialog(false)} />
+    </>
   );
 };
