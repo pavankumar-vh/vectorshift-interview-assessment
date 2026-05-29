@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiCreatePipeline, apiListPipelines } from '../api/client';
+import { apiCreatePipeline, apiDeletePipeline, apiListPipelines } from '../api/client';
 
 export const PipelinesPage = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ export const PipelinesPage = () => {
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
 
   const loadPipelines = async (query = '') => {
@@ -51,6 +52,25 @@ export const PipelinesPage = () => {
       setError(err.message || 'Unable to create pipeline');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDelete = async (pipelineId, pipelineName) => {
+    const confirmed = window.confirm(`Delete ${pipelineName}? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(pipelineId);
+    setError('');
+
+    try {
+      await apiDeletePipeline(pipelineId);
+      await loadPipelines(search);
+    } catch (err) {
+      setError(err.message || 'Unable to delete pipeline');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -147,6 +167,14 @@ export const PipelinesPage = () => {
                       onClick={() => navigate(`/pipelines/${pipeline.id}`)}
                     >
                       Open
+                    </button>
+                    <button
+                      className="btn btn-outline"
+                      type="button"
+                      onClick={() => handleDelete(pipeline.id, pipeline.name)}
+                      disabled={deletingId === pipeline.id}
+                    >
+                      {deletingId === pipeline.id ? 'Deleting...' : 'Delete'}
                     </button>
                     <div className="pipeline-card-date">
                       Updated {new Date(pipeline.updated_at).toLocaleString()}
