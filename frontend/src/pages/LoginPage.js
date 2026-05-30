@@ -76,14 +76,6 @@ export const LoginPage = () => {
         <div className="login-hero-content">
           <div className="login-hero-top">
             <div className="login-logo">
-              <div className="login-logo-mark">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="13 2 13 9 20 9"/>
-                  <polyline points="11 22 11 15 4 15"/>
-                  <path d="M20 9l-7 7"/>
-                  <path d="M4 15l7-7"/>
-                </svg>
-              </div>
               <span className="login-logo-text">VectorShift</span>
             </div>
           </div>

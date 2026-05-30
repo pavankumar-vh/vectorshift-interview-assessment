@@ -49,7 +49,6 @@ export const SharePage = () => {
     <div className="share-page">
       <div className="share-topbar">
         <div className="share-topbar-brand">
-          <div className="topnav-logo-mark">V</div>
           <span>VectorShift</span>
         </div>
         <button className="topnav-theme-btn" type="button" onClick={toggleTheme}>

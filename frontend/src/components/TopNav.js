@@ -18,7 +18,6 @@ export const TopNav = () => {
     <header className="topnav">
       <div className="topnav-left">
         <Link className="topnav-brand" to="/pipelines">
-          <div className="topnav-logo-mark">V</div>
           <span>VectorShift</span>
         </Link>
         <nav className="topnav-nav">
