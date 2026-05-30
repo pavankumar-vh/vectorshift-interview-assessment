@@ -1061,6 +1061,28 @@ h1, h2, h3 {
   line-height: 1.4;
 }
 
+.node-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.node-delete-btn:hover {
+  color: var(--red);
+  background: var(--red-subtle);
+}
+
 /* Per-type badge colors */
 .node-customInput  .node-badge { background: var(--blue-subtle); color: var(--blue); }
 .node-customOutput .node-badge { background: var(--teal-subtle); color: var(--teal); }

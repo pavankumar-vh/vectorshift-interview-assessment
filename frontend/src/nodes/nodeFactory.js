@@ -23,6 +23,7 @@ export const deriveNodeDefaults = (config) => {
 
 export const BaseNode = ({ id, data, config }) => {
   const updateNodeField = useStore((state) => state.updateNodeField);
+  const removeNode = useStore((state) => state.removeNode);
   const inputs = config.inputs || [];
   const outputs = config.outputs || [];
   const fields = config.fields || [];
@@ -78,7 +79,10 @@ export const BaseNode = ({ id, data, config }) => {
             <div className="node-subtitle">{config.subtitle}</div>
           ) : null}
         </div>
-        {config.badge ? <span className="node-badge">{config.badge}</span> : null}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {config.badge ? <span className="node-badge">{config.badge}</span> : null}
+          <button className="node-delete-btn" onClick={() => removeNode(id)} title="Delete node">&times;</button>
+        </div>
       </div>
 
       {fields.length > 0 ? (

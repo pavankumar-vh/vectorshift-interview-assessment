@@ -120,11 +120,15 @@ export const PipelineUI = ({ readOnly = false }) => {
           onNodesChange={readOnly ? undefined : onNodesChange}
           onEdgesChange={readOnly ? undefined : onEdgesChange}
           onConnect={readOnly ? undefined : onConnect}
+          onEdgeDoubleClick={readOnly ? undefined : (event, edge) => {
+            onEdgesChange([{ id: edge.id, type: 'remove' }]);
+          }}
           onDrop={readOnly ? undefined : onDrop}
           onDragOver={readOnly ? undefined : onDragOver}
           onInit={setReactFlowInstance}
           nodeTypes={nodeTypes}
           proOptions={proOptions}
+          deleteKeyCode={['Backspace', 'Delete']}
           snapGrid={[gridSize, gridSize]}
           connectionLineType="smoothstep"
           nodesDraggable={!readOnly}
