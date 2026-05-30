@@ -1,184 +1,132 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiCreatePipeline, apiDeletePipeline, apiListPipelines } from '../api/client';
+import ConfirmDialog from '../components/ConfirmDialog';
+
+const timeAgo = (d) => {
+  const ms = Date.now() - new Date(d).getTime();
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return 'now';
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+};
 
 export const PipelinesPage = () => {
   const navigate = useNavigate();
   const [pipelines, setPipelines] = useState([]);
   const [search, setSearch] = useState('');
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const [desc, setDesc] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMeta, setConfirmMeta] = useState({ id: null, name: '' });
   const [error, setError] = useState('');
 
-  const loadPipelines = async (query = '') => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await apiListPipelines(query);
-      setPipelines(data.pipelines || []);
-    } catch (err) {
-      setError(err.message || 'Unable to load pipelines');
-    } finally {
-      setIsLoading(false);
-    }
+  const load = async (q = '') => {
+    setLoading(true); setError('');
+    try { const r = await apiListPipelines(q); setPipelines(r.pipelines || []); }
+    catch (e) { setError(e.message || 'Unable to load pipelines'); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadPipelines();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    loadPipelines(search);
+  const handleSearch = (e) => { e.preventDefault(); load(search); };
+
+  const handleCreate = async (e) => {
+    e.preventDefault(); setCreating(true); setError('');
+    try {
+      const p = await apiCreatePipeline({ name: name.trim() || 'Untitled Pipeline', description: desc.trim(), nodes: [], edges: [] });
+      navigate(`/pipelines/${p.id}`);
+    } catch (e) { setError(e.message || 'Unable to create'); }
+    finally { setCreating(false); }
   };
 
-  const handleCreate = async (event) => {
-    event.preventDefault();
-    setIsCreating(true);
-    setError('');
+  const askDelete = (id, n) => { setConfirmMeta({ id, name: n }); setConfirmOpen(true); };
 
-    try {
-      const pipeline = await apiCreatePipeline({
-        name: name.trim() || 'Untitled Pipeline',
-        description: description.trim() || '',
-        nodes: [],
-        edges: [],
-      });
-      navigate(`/pipelines/${pipeline.id}`);
-    } catch (err) {
-      setError(err.message || 'Unable to create pipeline');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleDelete = async (pipelineId, pipelineName) => {
-    const confirmed = window.confirm(`Delete ${pipelineName}? This cannot be undone.`);
-    if (!confirmed) {
-      return;
-    }
-
-    setDeletingId(pipelineId);
-    setError('');
-
-    try {
-      await apiDeletePipeline(pipelineId);
-      await loadPipelines(search);
-    } catch (err) {
-      setError(err.message || 'Unable to delete pipeline');
-    } finally {
-      setDeletingId(null);
-    }
+  const doDelete = async () => {
+    setDeletingId(confirmMeta.id); setError(''); setConfirmOpen(false);
+    try { await apiDeletePipeline(confirmMeta.id); await load(search); }
+    catch (e) { setError(e.message || 'Unable to delete'); }
+    finally { setDeletingId(null); }
   };
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
-          <div className="page-title">Pipelines</div>
-          <div className="page-subtitle">
-            Manage, version, and share your pipeline library.
-          </div>
+          <h1 className="page-title">Pipelines</h1>
+          <p className="page-subtitle">Manage and share your pipeline library</p>
         </div>
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search pipelines"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search..."
           />
-          <button className="btn btn-outline" type="submit">
-            Search
-          </button>
+          <button className="btn btn-outline" type="submit">Search</button>
         </form>
       </div>
 
-      {error ? <div className="banner banner-error">{error}</div> : null}
+      {error && <div className="banner banner-error">{error}</div>}
 
       <div className="page-grid">
         <section className="panel">
           <div className="panel-header">
             <div>
-              <div className="panel-title">Create a pipeline</div>
-              <div className="panel-subtitle">
-                Start with a name and description, then build in the editor.
-              </div>
+              <div className="panel-title">New pipeline</div>
+              <div className="panel-subtitle">Give it a name, then build in the editor</div>
             </div>
           </div>
           <form className="panel-form" onSubmit={handleCreate}>
             <label className="form-field">
               <span>Name</span>
-              <input
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Onboarding flow"
-              />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Onboarding flow" />
             </label>
             <label className="form-field">
               <span>Description</span>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Describe what this pipeline does"
-              />
+              <textarea rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What does this pipeline do?" />
             </label>
-            <button className="btn btn-primary" type="submit" disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create pipeline'}
+            <button className="btn btn-primary" type="submit" disabled={creating}>
+              {creating ? <><span className="spinner" /> Creating...</> : 'Create pipeline'}
             </button>
           </form>
         </section>
 
-        <section className="panel">
-          <div className="panel-header">
+        <section className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="panel-header" style={{ padding: '16px 20px', margin: 0 }}>
             <div>
-              <div className="panel-title">Recent pipelines</div>
-              <div className="panel-subtitle">
-                {pipelines.length} pipeline{pipelines.length === 1 ? '' : 's'}
-              </div>
+              <div className="panel-title">Recent</div>
+              <div className="panel-subtitle">{pipelines.length} pipeline{pipelines.length === 1 ? '' : 's'}</div>
             </div>
           </div>
-          {isLoading ? (
-            <div className="panel-empty">Loading pipelines...</div>
+          {loading ? (
+            <div className="panel-empty"><span className="spinner" /> Loading...</div>
           ) : pipelines.length === 0 ? (
-            <div className="panel-empty">No pipelines yet. Create one to begin.</div>
+            <div className="panel-empty">No pipelines yet</div>
           ) : (
             <div className="pipeline-list">
-              {pipelines.map((pipeline) => (
-                <div key={pipeline.id} className="pipeline-card">
-                  <div>
-                    <div className="pipeline-card-title">{pipeline.name}</div>
-                    <div className="pipeline-card-meta">
-                      {pipeline.description || 'No description'}
-                    </div>
+              {pipelines.map((p) => (
+                <div key={p.id} className="pipeline-card">
+                  <div className="pipeline-card-content">
+                    <div className="pipeline-card-title">{p.name}</div>
+                    <div className="pipeline-card-meta">{p.description || 'No description'}</div>
                     <div className="pipeline-card-stats">
-                      <span>{pipeline.num_nodes} nodes</span>
-                      <span>{pipeline.num_edges} edges</span>
+                      <span className="stat">{p.num_nodes} nodes</span>
+                      <span className="stat">{p.num_edges} edges</span>
                     </div>
                   </div>
                   <div className="pipeline-card-actions">
-                    <button
-                      className="btn btn-outline"
-                      type="button"
-                      onClick={() => navigate(`/pipelines/${pipeline.id}`)}
-                    >
-                      Open
+                    <div className="pipeline-card-date">{timeAgo(p.updated_at)}</div>
+                    <button className="btn btn-sm" onClick={() => navigate(`/pipelines/${p.id}`)}>Open</button>
+                    <button className="btn btn-sm btn-danger-text" onClick={() => askDelete(p.id, p.name)} disabled={deletingId === p.id}>
+                      {deletingId === p.id ? '...' : 'Delete'}
                     </button>
-                    <button
-                      className="btn btn-outline"
-                      type="button"
-                      onClick={() => handleDelete(pipeline.id, pipeline.name)}
-                      disabled={deletingId === pipeline.id}
-                    >
-                      {deletingId === pipeline.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                    <div className="pipeline-card-date">
-                      Updated {new Date(pipeline.updated_at).toLocaleString()}
-                    </div>
                   </div>
                 </div>
               ))}
@@ -186,6 +134,7 @@ export const PipelinesPage = () => {
           )}
         </section>
       </div>
+      <ConfirmDialog open={confirmOpen} title={`Delete "${confirmMeta.name}"?`} message={'This cannot be undone.'} onCancel={() => setConfirmOpen(false)} onConfirm={doDelete} />
     </div>
   );
 };

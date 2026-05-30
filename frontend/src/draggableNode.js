@@ -1,10 +1,6 @@
-// draggableNode.js
-
 export const DraggableNode = ({ type, label, tone }) => {
   const onDragStart = (event, nodeType) => {
-    const appData = { nodeType };
-    event.target.style.cursor = 'grabbing';
-    event.dataTransfer.setData('application/reactflow', JSON.stringify(appData));
+    event.dataTransfer.setData('application/reactflow', JSON.stringify({ nodeType }));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -12,9 +8,8 @@ export const DraggableNode = ({ type, label, tone }) => {
     <div
       className="draggable-node"
       data-tone={tone}
-      data-node-type={type}
-      onDragStart={(event) => onDragStart(event, type)}
-      onDragEnd={(event) => (event.target.style.cursor = 'grab')}
+      onDragStart={(e) => onDragStart(e, type)}
+      onDragEnd={(e) => (e.target.style.cursor = 'grab')}
       draggable
     >
       <div className="draggable-node-label">{label}</div>
@@ -22,4 +17,3 @@ export const DraggableNode = ({ type, label, tone }) => {
     </div>
   );
 };
-  
