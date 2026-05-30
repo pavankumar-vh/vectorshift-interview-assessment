@@ -1,4 +1,5 @@
 import secrets
+from contextlib import asynccontextmanager
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -36,23 +37,25 @@ from app.schemas import (
 
 settings = get_settings()
 
-app = FastAPI(title="VectorShift Pipeline API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title="VectorShift Pipeline API", lifespan=lifespan)
 
 origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins or ["*"],
-    allow_origin_regex=r"^(https://.*|http://(localhost|127\.0\.0\.1)(:\\d+)?)$",
+    allow_origin_regex=r"^(https://.*|http://(localhost|127\.0\.0\.1)(:\d+)?)$",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup():
-    Base.metadata.create_all(bind=engine)
 
 
 def pipeline_summary(nodes: List[dict], edges: List[dict]) -> PipelineValidationResult:
