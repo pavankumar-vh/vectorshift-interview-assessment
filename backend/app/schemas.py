@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoginRequest(BaseModel):
@@ -10,12 +10,11 @@ class LoginRequest(BaseModel):
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     username: str
     full_name: Optional[str] = None
-
-    class Config:
-        orm_mode = True
 
 
 class TokenResponse(BaseModel):
@@ -53,15 +52,14 @@ class PipelineUpdate(BaseModel):
 
 
 class PipelineOut(PipelineBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     owner_id: int
     nodes: List[Dict]
     edges: List[Dict]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class PipelineListItem(BaseModel):
@@ -79,18 +77,13 @@ class PipelineListResponse(BaseModel):
     total: int
 
 
-class RunCreate(BaseModel):
-    note: Optional[str] = None
-
-
 class RunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     status: str
     result: PipelineValidationResult
     created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class RunListResponse(BaseModel):

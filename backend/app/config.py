@@ -1,11 +1,15 @@
 from functools import lru_cache
-try:
-    from pydantic_settings import BaseSettings
-except ImportError:
-    from pydantic import BaseSettings
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     DATABASE_URL: str = (
         "postgresql+psycopg2://postgres:postgres@localhost:5432/vectorshift"
     )
@@ -16,15 +20,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000,"
         "http://localhost:5173,"
         "http://127.0.0.1:5173,"
-        "http://localhost:5174,"
-        "http://127.0.0.1:5174,"
         "http://localhost:8000"
     )
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
 
 
 @lru_cache

@@ -26,7 +26,6 @@ from app.schemas import (
     PipelinePayload,
     PipelineUpdate,
     PipelineValidationResult,
-    RunCreate,
     RunListResponse,
     RunOut,
     ShareResponse,
@@ -223,7 +222,6 @@ def list_runs(
 @app.post("/pipelines/{pipeline_id}/runs", response_model=RunOut)
 def run_pipeline(
     pipeline_id: int,
-    payload: RunCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -231,7 +229,7 @@ def run_pipeline(
     if not pipeline or pipeline.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Pipeline not found")
 
-    result = pipeline_summary(pipeline.nodes or [], pipeline.edges or []).dict()
+    result = pipeline_summary(pipeline.nodes or [], pipeline.edges or []).model_dump()
 
     run = PipelineRun(
         pipeline_id=pipeline.id,
